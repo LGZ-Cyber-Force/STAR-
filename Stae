@@ -1,0 +1,83 @@
+import React from 'react';
+import { Text, View, Button } from 'react-native';
+import { useTranslation } from 'react-i18next';
+
+const App = () => {
+  const { t, i18n } = useTranslation();
+
+  const changeLanguage = (lng) => {
+    i18n.changeLanguage(lng);
+  };
+
+  return (
+    <View>
+      <Text>{t('welcome_message')}</Text>
+      <Button title="English" onPress={() => changeLanguage('en')} />
+      <Button title="Español" onPress={() => changeLanguage('es')} />
+    </View>
+  );
+};
+
+export default App;
+const express = require('express');
+const http = require('http');
+const socketIo = require('socket.io');
+const mongoose = require('mongoose');
+
+const app = express();
+const server = http.createServer(app);
+const io = socketIo(server);
+
+mongoose.connect('mongodb://localhost/star_app', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+});
+
+io.on('connection', (socket) => {
+  console.log('a user connected');
+
+  socket.on('disconnect', () => {
+    console.log('user disconnected');
+  });
+
+  socket.on('message', (msg) => {
+    io.emit('message', msg);
+  });
+});
+
+server.listen(3000, () => {
+  console.log('listening on *:3000');
+});
+import { request, PERMISSIONS } from 'react-native-permissions';
+
+request(PERMISSIONS.ANDROID.CAMERA).then((result) => {
+  console.log(result);
+});
+import auth from '@react-native-firebase/auth';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import { LoginManager, AccessToken } from 'react-native-fbsdk-next';
+
+// Google Sign-In
+GoogleSignin.configure({
+  webClientId: 'your-web-client-id.apps.googleusercontent.com',
+});
+
+const googleSignIn = async () => {
+  const { idToken } = await GoogleSignin.signIn();
+  const googleCredential = auth.GoogleAuthProvider.credential(idToken);
+  return auth().signInWithCredential(googleCredential);
+};
+
+// Facebook Sign-In
+const facebookSignIn = async () => {
+  const result = await LoginManager.logInWithPermissions(['public_profile', 'email']);
+  if (result.isCancelled) {
+    throw 'User cancelled the login process';
+  }
+  const data = await AccessToken.getCurrentAccessToken();
+  if (!data) {
+    throw 'Something went wrong obtaining access token';
+  }
+  const facebookCredential = auth.FacebookAuthProvider.credential(data.accessToken);
+  return auth().signInWithCredential(facebookCredential);
+};
